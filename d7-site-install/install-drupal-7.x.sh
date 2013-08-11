@@ -11,6 +11,7 @@ STEP=1
 YESNO="yes no"
 REPO_COMMIT=true
 CREATE_DB=false
+RESOURCES_REPO="git@github.com:tbeigle/resources.git"
 
 CURUSER="$(id -u -n)"
 echo ""
@@ -73,22 +74,6 @@ echo ""
 
 drush self-update -y
 
-######################### DELETE/ #########################
-#echo "Step $STEP: OHO SVN Credentials (required even if you plan on using git)"
-#let STEP=STEP+1
-
-#echo ""
-
-#while [ -z $SVNUSER ]; do
-#  read -e -p "SVN Username: " SVNUSER
-#done
-
-#echo ""
-
-#while [ -z $SVNPASS ]; do
-#  read -e -s -p "SVN Password: " SVNPASS
-#done
-######################### /DELETE #########################
 echo ""
 
 # Make the docroot directory
@@ -117,6 +102,8 @@ if [ "$DIRPATH" != "." ]; then
     echo ""
   fi
 fi
+
+RESOURCES_LOCAL=$DIRPATH"/dd-resources"
 
 if [ "$(ls -A $DIRPATH)" ]; then
   echo "The specified directory is not empty. Consequently, I will not attempt to commit/push your changes to any repository."
@@ -188,6 +175,16 @@ if [ $REPO_COMMIT ]; then
   elif [ "$VCONTROL" = "git" ]; then
     git clone $REMOTEREPO $DIRPATH
   fi
+fi
+
+# ---- Clone the resources repository ----- #
+echo "Cloning the resources repository ..."
+
+git clone $RESOURCES_REPO $RESOURCES_LOCAL
+
+if [ ! -d "$RESOURCES_LOCAL" ]; then
+  echo "Failed cloning the resources repository. I guess that's it for me, then. Good luck."
+  exit 2
 fi
 
 DOCROOT=$DIRPATH"/docroot"
@@ -327,36 +324,23 @@ echo ""
 while [ -z "$SITENAME" ]; do
   read -e -p "Site name: " SITENAME
 done
-
 echo ""
 
 cd $DOCROOT
 
-# ---- download drush make file ----- #
-echo "Retrieving latest version of make file ..."
-
-git archive git@github:tbeigle/resources.git/d7-site-install/dd-d7.make
-
-#svn --username $SVNUSER --password $SVNPASS export https://svn2.oho.com/svn/cookbook/trunk/aw-sandbox/oho-drupal-install/D7/acquia-oho-d7.make
-
-if [ $? -ne 0 ]; then
-	echo "Failed retrieving make file"
-	exit 2
-fi
+# ---- Copy the make file over ----- #
+cp $RESOURCES_LOCAL"/d7-site-install/dd-d7.make" ./dd-d7.make
 
 # ------ run drush make ------- #
 echo ""
 echo "Step $STEP: Running Drush Make"
 let STEP=STEP+1
-drush make acquia-oho-d7.make --prepare-install -y
+drush make dd-d7.make --prepare-install -y
 
 if [ $? -eq 0 ]; then
 
-# ------ get the acquia oho install profile and the oho_basic theme  ------- #
-
-  svn export https://svn2.oho.com/svn/cookbook/trunk/aw-sandbox/oho-drupal-install/D7/oho_profile ./profiles/oho_profile --username $SVNUSER --password $SVNPASS
-  
-  svn export https://svn2.oho.com/svn/cookbook/trunk/oho_basic_d7 ./sites/all/themes/oho_basic --username $SVNUSER --password $SVNPASS
+# ------ get the install profile  ------- #
+  cp -R $RESOURCES_LOCAL"/d7-site-install/dd_profile" ./dd_profile
 
 # ------ set user:group on all drupal files ------- #
 	
@@ -374,18 +358,13 @@ if [ $? -eq 0 ]; then
 
 # ------ install via drush with the oho profile ------- #
 
-  drush si oho_profile --db-url=$DBURL --account-mail=admin@oho.com --account-name=ohoadmin --account-pass=OHO4900 --site-mail=admin@oho.com --site-name="$SITENAME" -y
-
-# ------ step 8: enable the custom theme and set it as the default theme ------- #
-
-  drush pm-enable oho_basic -y
-  
-  drush vset theme_default oho_basic
+  drush si dd_profile --db-url=$DBURL --account-mail=admin@dd.com --account-name=ddadmin --account-pass=DD4900 --site-mail=admin@dd.com --site-name="$SITENAME" -y
 
 # ------ cleanup ------- #
 	
-	rm acquia-oho-d7.make
-	echo "Removing Acquia OHO Make File"
+	rm dd-d7.make
+	echo "Removing Make File"
+	rm -rf $RESOURCES_LOCAL
 	
 	if $REPO_COMMIT ; then
 	  echo ""
