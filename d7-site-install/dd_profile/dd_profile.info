@@ -1,0 +1,96 @@
+name = DD Profile
+description = Designated Developers Profile Package
+version = VERSION
+core = 7.x
+
+; Core
+dependencies[] = block
+dependencies[] = color
+dependencies[] = comment
+dependencies[] = contextual
+dependencies[] = dashboard
+dependencies[] = dblog
+dependencies[] = field_ui
+dependencies[] = file
+dependencies[] = help
+dependencies[] = image
+dependencies[] = list
+dependencies[] = menu
+dependencies[] = number
+dependencies[] = options
+dependencies[] = path
+dependencies[] = rdf
+dependencies[] = search
+dependencies[] = shortcut
+dependencies[] = taxonomy
+dependencies[] = toolbar
+
+; Contrib
+dependencies[] = addanother
+dependencies[] = admin_views
+dependencies[] = advanced_help
+dependencies[] = block_class
+dependencies[] = blocktheme
+dependencies[] = block_titlelink
+dependencies[] = boxes
+dependencies[] = clone
+dependencies[] = coder
+dependencies[] = context
+dependencies[] = context_disable_context
+dependencies[] = context_ui
+dependencies[] = ctools
+dependencies[] = date
+dependencies[] = date_all_day
+dependencies[] = date_popup
+dependencies[] = date_views
+dependencies[] = devel
+dependencies[] = diff
+dependencies[] = email
+dependencies[] = entityreference
+dependencies[] = environment_indicator
+dependencies[] = eva
+dependencies[] = field_group
+dependencies[] = filefield_sources
+dependencies[] = globalredirect
+dependencies[] = imagecrop
+dependencies[] = imce
+dependencies[] = imce_wysiwyg
+dependencies[] = imce_mkdir
+dependencies[] = jquery_update
+dependencies[] = libraries
+dependencies[] = link
+dependencies[] = logintoboggan
+dependencies[] = masquerade
+dependencies[] = menu_attributes
+dependencies[] = menu_block
+dependencies[] = menu_position
+dependencies[] = metatag
+dependencies[] = module_filter
+dependencies[] = nodeblock
+dependencies[] = nodequeue
+dependencies[] = pathauto
+dependencies[] = quicktabs
+dependencies[] = redirect
+dependencies[] = search_krumo
+dependencies[] = strongarm
+dependencies[] = taxonomy_formatter
+dependencies[] = token
+dependencies[] = transliteration
+dependencies[] = views
+dependencies[] = views_bulk_operations
+dependencies[] = views_field_view
+dependencies[] = views_random_seed
+dependencies[] = views_ui
+dependencies[] = views_ui_basic
+dependencies[] = webform
+dependencies[] = wysiwyg
+
+; Features
+dependencies[] = features
+
+; Files included with profile
+files[] = dd_profile.profile
+
+; Version information
+version = "7.0"
+project = "drupal"
