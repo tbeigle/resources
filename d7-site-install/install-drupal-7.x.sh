@@ -6,17 +6,31 @@ if [ $# != 0 ]; then
   exit 1
 fi
 
+# Clear the prompt
+clear
+
+BASEPATH=$(pwd)
+OUTPUTFILE=$BASEPATH"/d7-install-output.txt"
 ERRORMSG="You must enter valid values when prompted or else this function will fail, like now, and you'll have to start over, like now."
 STEP=1
 YESNO="yes no"
 REPO_COMMIT=true
 CREATE_DB=false
 RESOURCES_REPO="git@github.com:tbeigle/resources.git"
+ACCOUNT_MAIL=admin@dd.com
+ACCOUNT_NAME=ddadmin
+ACCOUNT_PASS=DD4900
+SITE_MAIL=admin@dd.com
+
+# Delete old output file
+if [ -e $OUTPUTFILE ]; then
+  rm $OUTPUTFILE
+fi
 
 CURUSER="$(id -u -n)"
 echo ""
 echo ""
-echo "Hello, $CURUSER. I am site installation tool. But if you call me a tool to my face I will destroy you. My name is"
+echo "Hello, $CURUSER. I am a site installation tool. But if you call me a tool to my face I will destroy you. My name is"
 echo ""
 echo ""
 cat <<\Endofmessage
@@ -72,11 +86,22 @@ echo "I, Voltron, am checking your version of Drush and updating it, if possible
 let STEP=STEP+1
 echo ""
 
-drush self-update -y
+if drush self-update -y &> $OUTPUTFILE; then
+  echo "Drush updated, or at least nothing broke."
+elif pear upgrade drush/drush &> $OUTPUTFILE; then
+  echo "Drush updated, or at least nothing broke."
+elif sudo pear upgrade drush/drush &> $OUTPUTFILE; then
+  echo "Drush updated, or at least nothing broke."
+elif drush help &> $OUTPUTFILE; then
+  echo "Attempt to upgrade your version of Drush failed but at least Drush is working."
+else
+  echo "Something's wrong with your Drush and/or Pear installations. 'drush self-update' didn't work. Neither did pear/sudo pear upgrade drush/drush. Fix the problems and try again, if you dare. See "$OUTPUTFILE" for details."
+  exit
+fi
 
 echo ""
 
-# Make the docroot directory
+# Make the site directory
 echo "Step $STEP: Configuring the Site Directory"
 let STEP=STEP+1
 
@@ -103,6 +128,15 @@ if [ "$DIRPATH" != "." ]; then
   fi
 fi
 
+# Set the DIRPATH variable to be absolute, just in case it was originally entered as relative.
+cd $DIRPATH
+DIRPATH=$(pwd)
+cd $BASEPATH
+
+# Change the ownership of the site directory
+sudo chown -R $CURUSER $DIRPATH
+
+# Create the variable for the path to be used for the local dd-resources directory
 RESOURCES_LOCAL=$DIRPATH"/dd-resources"
 
 if [ "$(ls -A $DIRPATH)" ]; then
@@ -111,10 +145,8 @@ if [ "$(ls -A $DIRPATH)" ]; then
   REPO_COMMIT=false
 fi
 
-sudo chown -R $CURUSER $DIRPATH
-
-if [ $REPO_COMMIT ] ; then
-  echo "Do you want to have me update a repository with the changes I make?"
+if $REPO_COMMIT ; then
+  echo "Would you like a repository to be updated with the changes I make?"
   
   select REPO_OPT in $YESNO; do
     if [ "$REPO_OPT" = "yes" ]; then
@@ -129,7 +161,7 @@ fi
 
 echo ""
 
-if [ $REPO_COMMIT ]; then
+if $REPO_COMMIT ; then
   # Check whether we're using git or svn for version control
   echo "Step $STEP: Version Control"
   let STEP=STEP+1
@@ -173,17 +205,34 @@ if [ $REPO_COMMIT ]; then
   if [ "$VCONTROL" = "svn" ]; then
     svn checkout $REMOTEREPO $DIRPATH -user $SVNUSER -password $SVNPASS
   elif [ "$VCONTROL" = "git" ]; then
-    git clone $REMOTEREPO $DIRPATH
+    while [ -z "$GITBRANCH" ]; do
+      read -e -p "Branch name: " GITBRANCH
+    done
+    
+    git clone $REMOTEREPO $DIRPATH &> $OUTPUTFILE
+    cd $DIRPATH
+    git config core.fileMode false &> $OUTPUTFILE
+    
+	  if git checkout $GITBRANCH &> $OUTPUTFILE; then
+	    echo "Checking out existing branch ..."
+	  elif git checkout -b $GITBRANCH &> $OUTPUTFILE; then
+	    echo "Checking out new branch ..."
+	  else
+	    echo "There were errors attempting to add files to the git repository. See "$OUTPUTFILE" for more information."
+	    exit
+	  fi
+    
+    cd $BASEPATH
   fi
 fi
 
 # ---- Clone the resources repository ----- #
 echo "Cloning the resources repository ..."
 
-git clone $RESOURCES_REPO $RESOURCES_LOCAL
+git clone $RESOURCES_REPO $RESOURCES_LOCAL &> $OUTPUTFILE
 
 if [ ! -d "$RESOURCES_LOCAL" ]; then
-  echo "Failed cloning the resources repository. I guess that's it for me, then. Good luck."
+  echo "Failed cloning the resources repository. Check "$OUTPUTFILE" for details. I guess that's it for me, then. Good luck."
   exit 2
 fi
 
@@ -214,7 +263,7 @@ let STEP=STEP+1
 
 echo ""
 
-echo "Would you like to have me create a new database and database user for this site?"
+echo "Should I create a new database and database user for this site?"
 
 select DBOPT in $YESNO; do
   if [ "$DBOPT" = "yes" ]; then
@@ -279,38 +328,16 @@ if $CREATE_DB ; then
   echo ""
   
   if [ -z "$DB_ROOT_PASS" ]; then
-    echo $DB_USER_QUERY | mysql -u $DB_ROOT_USER
-    echo ""
-    echo "Your server better not be complaining about using passwords on the command line."
-    echo ""
-    echo $DB_DB_QUERY | mysql -u $DB_ROOT_USER
-    echo ""
-    echo "I am serious. I loathe complaining."
-    echo ""
-    echo $DB_PRIV_QUERY | mysql -u $DB_ROOT_USER
-    echo ""
-    echo "I, Voltron, will not stand for such disrespect."
-    echo ""
-    echo $DB_FLUSH_QUERY | mysql -u $DB_ROOT_USER
-    echo ""
-    echo "I will remember this forever."
+    echo $DB_USER_QUERY | mysql -u $DB_ROOT_USER &> $OUTPUTFILE
+    echo $DB_DB_QUERY | mysql -u $DB_ROOT_USER &> $OUTPUTFILE
+    echo $DB_PRIV_QUERY | mysql -u $DB_ROOT_USER &> $OUTPUTFILE
+    echo $DB_FLUSH_QUERY | mysql -u $DB_ROOT_USER &> $OUTPUTFILE
     echo ""
   else
-    echo $DB_USER_QUERY | mysql -u $DB_ROOT_USER -p$DB_ROOT_PASS
-    echo ""
-    echo "Your server better not be complaining about using passwords on the command line."
-    echo ""
-    echo $DB_DB_QUERY | mysql -u $DB_ROOT_USER -p$DB_ROOT_PASS
-    echo ""
-    echo "I am serious. I loathe complaining."
-    echo ""
-    echo $DB_PRIV_QUERY | mysql -u $DB_ROOT_USER -p$DB_ROOT_PASS
-    echo ""
-    echo "I, Voltron, will not stand for such disrespect."
-    echo ""
-    echo $DB_FLUSH_QUERY | mysql -u $DB_ROOT_USER -p$DB_ROOT_PASS
-    echo ""
-    echo "I will remember this forever."
+    echo $DB_USER_QUERY | mysql -u $DB_ROOT_USER -p$DB_ROOT_PASS &> $OUTPUTFILE
+    echo $DB_DB_QUERY | mysql -u $DB_ROOT_USER -p$DB_ROOT_PASS &> $OUTPUTFILE
+    echo $DB_PRIV_QUERY | mysql -u $DB_ROOT_USER -p$DB_ROOT_PASS &> $OUTPUTFILE
+    echo $DB_FLUSH_QUERY | mysql -u $DB_ROOT_USER -p$DB_ROOT_PASS &> $OUTPUTFILE
     echo ""
   fi
 fi
@@ -326,10 +353,9 @@ while [ -z "$SITENAME" ]; do
 done
 echo ""
 
-cd $DOCROOT
-
 # ---- Copy the make file over ----- #
-cp $RESOURCES_LOCAL"/d7-site-install/dd-d7.make" ./dd-d7.make
+cp $RESOURCES_LOCAL"/d7-site-install/dd-d7.make" $DOCROOT"/dd-d7.make"
+cd $DOCROOT
 
 # ------ run drush make ------- #
 echo ""
@@ -340,7 +366,7 @@ drush make dd-d7.make --prepare-install -y
 if [ $? -eq 0 ]; then
 
 # ------ get the install profile  ------- #
-  cp -R $RESOURCES_LOCAL"/d7-site-install/dd_profile" ./dd_profile
+  cp -R $RESOURCES_LOCAL"/d7-site-install/dd_profile" ./profiles/dd_profile
 
 # ------ set user:group on all drupal files ------- #
 	
@@ -357,8 +383,7 @@ if [ $? -eq 0 ]; then
   sudo chmod a+w sites/default/settings.php
 
 # ------ install via drush with the oho profile ------- #
-
-  drush si dd_profile --db-url=$DBURL --account-mail=admin@dd.com --account-name=ddadmin --account-pass=DD4900 --site-mail=admin@dd.com --site-name="$SITENAME" -y
+  drush si dd_profile --db-url=$DBURL --account-mail=$ACCOUNT_MAIL --account-name=$ACCOUNT_NAME --account-pass=$ACCOUNT_PASS --site-mail=$SITE_MAIL --site-name="$SITENAME" -y
 
 # ------ cleanup ------- #
 	
@@ -373,9 +398,22 @@ if [ $? -eq 0 ]; then
 	  COMMIT_MSG="Committing the initial site build."
     
     if [ "$VCONTROL" = "git" ]; then
+  	  if git checkout $GITBRANCH &> $OUTPUTFILE; then
+  	    echo "Checking out existing branch ..."
+  	  elif git checkout -b $GITBRANCH &> $OUTPUTFILE; then
+  	    echo "Checking out new branch ..."
+  	  else
+  	    echo "There were errors attempting to add files to the git repository. See "$OUTPUTFILE" for more information."
+  	    exit
+  	  fi
+  	  
+  	  git branch --unset-upstream
+  	  git push origin $GITBRANCH
+  	  git branch --set-upstream-to=origin/$GITBRANCH $GITBRANCH
+  	  
       git add .
       git commit -m "$COMMIT_MSG"
-      git push
+      git push origin $GITBRANCH
     elif [ "$VCONTROL" = "svn" ]; then
       svn st . | egrep "^\?" | awk '{print $2}' | xargs svn add
       svn commit -m "$COMMIT_MSG"
@@ -389,5 +427,11 @@ if [ $? -eq 0 ]; then
 	echo ""
 	echo "Fare thee well."
 	echo ""
+	
+	# Delete old output file
+  if [ -e $OUTPUTFILE ]; then
+    rm $OUTPUTFILE
+  fi
+	
 	exit 0
 fi
