@@ -95,7 +95,7 @@ elif sudo pear upgrade drush/drush &> $OUTPUTFILE; then
 elif drush help &> $OUTPUTFILE; then
   echo "Attempt to upgrade your version of Drush failed but at least Drush is working."
 else
-  echo "Something's wrong with your Drush and/or Pear installations. 'drush self-update' didn't work. Neither did pear/sudo pear upgrade drush/drush. Fix the problems and try again, if you dare. See "$OUTPUTFILE" for details."
+  echo "Something is wrong with your Drush and/or Pear installations. 'drush self-update' didn't work. Neither did pear/sudo pear upgrade drush/drush. Fix the problems and try again, if you dare. See $OUTPUTFILE for details."
   exit
 fi
 
