@@ -53,6 +53,7 @@ dependencies[] = features
 dependencies[] = fe_block
 dependencies[] = field_group
 dependencies[] = filefield_sources
+dependencies[] = fpa
 dependencies[] = globalredirect
 dependencies[] = imagecrop
 dependencies[] = imce
