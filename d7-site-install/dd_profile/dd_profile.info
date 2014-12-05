@@ -8,7 +8,6 @@ dependencies[] = block
 dependencies[] = color
 dependencies[] = comment
 dependencies[] = contextual
-dependencies[] = dashboard
 dependencies[] = dblog
 dependencies[] = field_ui
 dependencies[] = file
@@ -23,16 +22,17 @@ dependencies[] = rdf
 dependencies[] = search
 dependencies[] = shortcut
 dependencies[] = taxonomy
-dependencies[] = toolbar
 
 ; Contrib
 dependencies[] = addanother
+dependencies[] = admin_menu
 dependencies[] = admin_views
 dependencies[] = advanced_help
 dependencies[] = block_class
 dependencies[] = blocktheme
 dependencies[] = block_titlelink
 dependencies[] = boxes
+dependencies[] = ckeditor
 dependencies[] = clone
 dependencies[] = coder
 dependencies[] = context
@@ -49,17 +49,18 @@ dependencies[] = email
 dependencies[] = entityreference
 dependencies[] = environment_indicator
 dependencies[] = eva
+dependencies[] = features
+dependencies[] = fe_block
 dependencies[] = field_group
 dependencies[] = filefield_sources
+dependencies[] = fpa
 dependencies[] = globalredirect
 dependencies[] = imagecrop
 dependencies[] = imce
-dependencies[] = imce_wysiwyg
 dependencies[] = imce_mkdir
 dependencies[] = jquery_update
 dependencies[] = libraries
 dependencies[] = link
-dependencies[] = logintoboggan
 dependencies[] = masquerade
 dependencies[] = menu_attributes
 dependencies[] = menu_block
@@ -83,10 +84,8 @@ dependencies[] = views_random_seed
 dependencies[] = views_ui
 dependencies[] = views_ui_basic
 dependencies[] = webform
-dependencies[] = wysiwyg
 
 ; Features
-dependencies[] = features
 
 ; Files included with profile
 files[] = dd_profile.profile
