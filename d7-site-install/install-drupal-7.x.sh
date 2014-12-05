@@ -17,10 +17,10 @@ YESNO="yes no"
 REPO_COMMIT=true
 CREATE_DB=false
 RESOURCES_REPO="git@github.com:tbeigle/resources.git"
-ACCOUNT_MAIL=admin@dd.com
+ACCOUNT_MAIL=tom@designated-developers.com
 ACCOUNT_NAME=ddadmin
 ACCOUNT_PASS=DD4900
-SITE_MAIL=admin@dd.com
+SITE_MAIL=tom@designated-developers.com
 
 # Delete old output file
 if [ -e $OUTPUTFILE ]; then
